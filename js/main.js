@@ -1,9 +1,48 @@
+import {getCellElementList, getCurrentTurnElement} from "./selectors.js";
+import {TURN} from "./constants.js";
+
 /**
  * Global variables
  */
-let currentTurn = "cross";
+let currentTurn = TURN.CROSS;
 let isGameEnded = false;
 let cellValues = new Array(9).fill("");
+
+function toggleTurn(){
+    currentTurn = currentTurn === TURN.CROSS ? TURN.CIRCLE : TURN.CROSS;
+
+    const currentTurnElement = getCurrentTurnElement();
+    if(currentTurnElement){
+        currentTurnElement.classList.remove(TURN.CIRCLE, TURN.CROSS);
+        currentTurnElement.classList.add(currentTurn);
+    }
+}
+
+function handleCeilClick(ceil, index){
+    const isClicked = ceil.classList.contains(TURN.CROSS) || ceil.classList.contains(TURN.CIRCLE);
+    if(isClicked){
+        return;
+    }
+
+
+    // set selected cell
+    ceil.classList.add(currentTurn);
+    // toggle turn
+    toggleTurn();
+
+
+    console.log('click', ceil, index);
+}
+
+function initCeilElementList(){
+    // Lấy được danh sách
+    const cellElementList = getCellElementList();
+
+    // Duyệt qua danh sách, gắn sự kiện
+    cellElementList.forEach((cell, index)=>{
+        cell.addEventListener('click' , ()=> handleCeilClick(cell, index))
+    })
+}
 
 /**
  * TODOs
@@ -20,3 +59,9 @@ let cellValues = new Array(9).fill("");
  * 4. On replay button click --> reset game to play again.
  *
  */
+
+(
+    ()=>{
+        initCeilElementList();
+    }
+)();
