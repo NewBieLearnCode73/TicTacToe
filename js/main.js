@@ -40,6 +40,11 @@ function showReplayButton(){
     if(replayButton) replayButton.classList.add('show');
 }
 
+function hideReplayButton(){
+    const replayButton = getReplayButtonElement();
+    if(replayButton) replayButton.classList.remove('show');
+}
+
 function hightlightWinCell(winPositions){
     if(!Array.isArray(winPositions) || winPositions.length !== 3){
         throw new Error("Invalid win position");
@@ -105,6 +110,35 @@ function initCeilElementList(){
     })
 }
 
+function resetGame(){
+    currentTurn = TURN.CROSS;
+    gameStatus = GAME_STATUS.PLAYING;
+    cellValues = cellValues.map(() => "");
+
+
+    updateGameStatus(GAME_STATUS.PLAYING);
+
+    const currentTurnElement = getCurrentTurnElement();
+    if(currentTurnElement){
+        currentTurnElement.classList.remove(TURN.CIRCLE, TURN.CROSS);
+        currentTurnElement.classList.add(TURN.CROSS);
+    }
+
+    const cellElementList = getCellElementList();
+    for (const cellElement of cellElementList){
+        cellElement.className = '';
+    }
+
+    hideReplayButton();
+}
+
+function initReplayButton(){
+    const replayButton = getReplayButtonElement();
+    if(replayButton){
+        replayButton.addEventListener('click', resetGame);
+    }
+}
+
 /**
  * TODOs
  *
@@ -124,5 +158,6 @@ function initCeilElementList(){
 (
     ()=>{
         initCeilElementList();
+        initReplayButton();
     }
 )();
