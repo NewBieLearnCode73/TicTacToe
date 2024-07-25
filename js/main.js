@@ -1,10 +1,18 @@
-import {getCellElementList, getCurrentTurnElement} from "./selectors.js";
-import {TURN} from "./constants.js";
+import {
+    getCellElementAtIdx,
+    getCellElementList,
+    getCurrentTurnElement,
+    getGameStatusElement,
+    getReplayButtonElement
+} from "./selectors.js";
+import {TURN, CELL_VALUE, GAME_STATUS} from "./constants.js";
+import {checkGameStatus} from "./utils.js";
 
 /**
  * Global variables
  */
 let currentTurn = TURN.CROSS;
+let gameStatus = GAME_STATUS.PLAYING;
 let isGameEnded = false;
 let cellValues = new Array(9).fill("");
 
@@ -18,17 +26,70 @@ function toggleTurn(){
     }
 }
 
+function updateGameStatus(newGameStatus){
+    gameStatus = newGameStatus;
+
+    const gameStatusElement = getGameStatusElement();
+    if(!gameStatusElement) return
+
+    gameStatusElement.textContent = newGameStatus
+}
+
+function showReplayButton(){
+    const replayButton = getReplayButtonElement();
+    if(replayButton) replayButton.classList.add('show');
+}
+
+function hightlightWinCell(winPositions){
+    if(!Array.isArray(winPositions) || winPositions.length !== 3){
+        throw new Error("Invalid win position");
+    }
+
+    for(const position of winPositions){
+        const cell = getCellElementAtIdx(position);
+        if(cell) cell.classList.add('win');
+    }
+}
+
+
 function handleCeilClick(ceil, index){
     const isClicked = ceil.classList.contains(TURN.CROSS) || ceil.classList.contains(TURN.CIRCLE);
-    if(isClicked){
+    const isEndGame = gameStatus !== GAME_STATUS.PLAYING;
+    if(isClicked || isEndGame){
         return;
     }
 
 
     // set selected cell
     ceil.classList.add(currentTurn);
+
+    // update cellValues
+    cellValues[index] = currentTurn === TURN.CIRCLE ? CELL_VALUE.CIRCLE : CELL_VALUE.CROSS;
+
     // toggle turn
     toggleTurn();
+
+    // check game status
+    const game = checkGameStatus(cellValues);
+    switch (game.status) {
+        case GAME_STATUS.ENDED:{
+            updateGameStatus(game.status);
+            showReplayButton();
+            break;
+        }
+
+        case GAME_STATUS.X_WIN:
+        case GAME_STATUS.O_WIN: {
+            updateGameStatus(game.status);
+            showReplayButton();
+            hightlightWinCell(game.winPositions);
+            break;
+        }
+
+
+        default:
+            // playing
+    }
 
 
     console.log('click', ceil, index);
